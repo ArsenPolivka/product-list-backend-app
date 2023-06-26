@@ -6,7 +6,11 @@ const cors = require('cors');
 dotenv.config();
 
 const app = express();
+
 app.use(cors());
+app.use(express.json()); // для обробки JSON
+app.use(express.urlencoded({ extended: true }));
+
 const port = 5000;
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -32,11 +36,41 @@ app.delete('/product/delete/:id', async (req, res) => {
 })
 
 app.put('/product/add', async (req, res) => {
+	const sizeArray = req.body.size.split(",").map(Number);
+
 	const { data, error } = await supabase
 		.from('products')
 		.insert([
-			{ some_column: 'someValue', other_column: 'otherValue' },
+			{
+				name: req.body.name,
+				count: parseInt(req.body.count),
+				size: sizeArray,
+				weight: parseInt(req.body.weight),
+				description: req.body.description
+			},
 		])
+})
+
+app.put('/product/edit/:id', async (req, res) => {
+	let sizeArray;
+	if (typeof req.body.size === "string") {
+		sizeArray = req.body.size.split(",").map(Number);
+	} else {
+		sizeArray = req.body.size;
+	}
+
+	const { data, error } = await supabase
+		.from('products')
+		.update([
+			{
+				name: req.body.name,
+				count: parseInt(req.body.count),
+				size: sizeArray,
+				weight: req.body.weight,
+				description: req.body.description
+			},
+		])
+		.eq('id', req.params.id)
 })
 
 app.listen(port, () => {
