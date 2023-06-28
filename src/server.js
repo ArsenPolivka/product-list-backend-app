@@ -8,7 +8,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors());
-app.use(express.json()); // для обробки JSON
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 const port = 5000;
@@ -28,6 +28,17 @@ app.get('/products', async (req, res) => {
 	return res.send(data);
 });
 
+app.get('/products/:id', async (req, res) => {
+	const { data, error } = await supabase
+		.from('products')
+		.select('*')
+		.eq('id', req.params.id);
+
+	if (error) return res.status(500).send({ error: error.message });
+
+	return res.send(data);
+});
+
 app.delete('/product/delete/:id', async (req, res) => {
 	const { data, error } = await supabase
 		.from('products')
@@ -36,36 +47,27 @@ app.delete('/product/delete/:id', async (req, res) => {
 })
 
 app.put('/product/add', async (req, res) => {
-	const sizeArray = req.body.size.split(",").map(Number);
-
 	const { data, error } = await supabase
 		.from('products')
 		.insert([
 			{
 				name: req.body.name,
 				count: parseInt(req.body.count),
-				size: sizeArray,
-				weight: parseInt(req.body.weight),
+				size: req.body.size,
+				weight: req.body.weight,
 				description: req.body.description
 			},
 		])
 })
 
 app.put('/product/edit/:id', async (req, res) => {
-	let sizeArray;
-	if (typeof req.body.size === "string") {
-		sizeArray = req.body.size.split(",").map(Number);
-	} else {
-		sizeArray = req.body.size;
-	}
-
 	const { data, error } = await supabase
 		.from('products')
 		.update([
 			{
 				name: req.body.name,
 				count: parseInt(req.body.count),
-				size: sizeArray,
+				size: req.body.size,
 				weight: req.body.weight,
 				description: req.body.description
 			},
