@@ -75,6 +75,25 @@ app.put('/product/edit/:id', async (req, res) => {
 		.eq('id', req.params.id)
 })
 
+app.put('/product/comment/add', async (req, res) => {
+	const { data, error } = await supabase
+		.from('comments')
+		.insert([
+			{
+				comment: req.body.comment,
+			},
+		])
+		.select()
+	const {dataa, errore} = await supabase
+		.from('keys')
+		.insert([
+			{
+				product_id: req.body.productId
+			}
+		])
+})
+
+
 app.listen(port, () => {
 	console.log(`Server had started on port ${port}`);
 })
